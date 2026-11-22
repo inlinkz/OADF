@@ -1,0 +1,138 @@
+oadf: 1
+type: scorecard
+archer: maria
+session: archers/maria/2026-10-20.session.yaml
+round: WA 18 (40cm)
+distance: { value: 18, unit: m }
+face: { value: 40, unit: cm }
+target: wa-full
+indoor: true
+location: Club hall
+grid:
+  endsPerCard: 2
+  arrowsPerEnd: 3
+  cards: 1
+notes:
+  training: Quiet hall, first scoring end.
+  cards:
+    - Watch the left hand.
+equipment:
+  - id: indoor-recurve
+    type: bow
+    title: Indoor recurve
+    rev: 1
+    at: 2026-09-01T08:00:00Z
+  - id: shibuya-ultima
+    type: sight
+    title: Shibuya Ultima
+    rev: 2
+    at: 2026-10-12T09:00:00Z
+  - id: ace-670
+    type: arrow
+    title: ACE 670
+    rev: 1
+    at: 2026-09-01T08:00:00Z
+  - id: longrod-30
+    type: stabilizer
+    title: Long rod 30
+    rev: 1
+    at: 2026-09-01T08:00:00Z
+  - id: end-weight-1oz
+    type: weight
+    title: End weight 1 oz
+    rev: 1
+    at: 2026-09-01T08:00:00Z
+  - id: string-8190
+    type: string
+    title: "8190"
+    rev: 1
+    at: 2026-09-01T08:00:00Z
+cards:
+  - ends:
+      - note: Held long on the second arrow.
+        arrows:
+          - score: X
+            x: 0.1
+            y: 0.2
+            at: 2026-10-20T13:46:12.340Z
+          - score: 9
+            x: 1.0
+            y: -0.5
+            at: 2026-10-20T13:46:18.100Z
+          - score: 8
+            x: -0.4
+            y: 0.6
+            at: 2026-10-20T13:46:30.000Z
+      - note: Called the first arrow out.
+        arrows:
+          - score: M
+            x: 8
+            y: 3
+            at: 2026-10-20T13:50:00.000Z
+          - score: 10
+            at: 2026-10-20T13:50:12.000Z
+          - at: 2026-10-20T13:50:20.000Z
+series:
+  - device: mantis
+    kind: aim
+    attach: shot
+    key: 1.1.1
+    path: archers/maria/series/aim-1-1-1.csv
+    hz: 400
+    origin: release
+    breakIndex: 1
+    unit: deg
+    before: 2
+    after: 1
+    halfAngleDeg: 3.5
+  - device: mantis
+    kind: aim
+    attach: shot
+    key: 1.1.2
+    path: archers/maria/series/aim-1-1-2.csv
+    hz: 400
+    origin: release
+    breakIndex: 1
+    unit: deg
+    before: 2
+    after: 1
+    halfAngleDeg: 3.5
+  - device: draw-board
+    attach: shot
+    key: 1.1.1
+    path: archers/maria/series/draw-1-1-1.csv
+    hz: 200
+    origin: release
+    breakIndex: 1
+    channels:
+      - { name: force, unit: N }
+  - device: wrist-imu
+    attach: shot
+    key: 1.1.2
+    path: archers/maria/series/wrist-1-1-2.csv
+    time: iso
+    channels:
+      - { name: ax, unit: g }
+      - { name: ay, unit: g }
+      - { name: az, unit: g }
+  - device: wii-balance
+    attach: shot
+    key: 1.1.1
+    path: archers/maria/series/balance-1-1-1.csv
+    hz: 100
+    origin: release
+    breakIndex: 1
+    channels:
+      - { name: tr, unit: kg }
+      - { name: br, unit: kg }
+      - { name: tl, unit: kg }
+      - { name: bl, unit: kg }
+media:
+  - kind: photo
+    attach: end
+    key: "1.1"
+    path: archers/maria/media/end-1-1.jpg
+  - kind: photo
+    attach: shot
+    key: "1.1.2"
+    path: archers/maria/media/shot-1-1-2.jpg

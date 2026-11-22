@@ -25,6 +25,7 @@ Omit documents the host does not have. A solo package may omit the club file.
 | Distance or pass with per-arrow scores | `*.scorecard.yaml` |
 | Counts without per-arrow scores | `*.bulk.yaml` |
 | One gear item | `*.equipment.yaml`, plus an `id` / `rev` / `at` snapshot on the session |
+| Target face | `targets/<id>.target.yaml`. The scorecard `target` is the face for the pass. An arrow sets `target` only when it differs |
 | Dense samples | CSV sidecar plus a series descriptor |
 | Photos | `media/` sidecar plus a media entry |
 
@@ -40,7 +41,9 @@ Paths are relative to the package root, use `/`, and do not escape the package. 
 - Series and shot attachment keys are 1-based `card.end.arrow` (example: `1.1.1`).
 - CSV is UTF-8, comma-separated, `\n`, header on the first row, no comments. `kind: aim` columns are `yaw,pitch` in degrees. Other series use a `time` column or `hz` plus `origin` on the descriptor.
 - Keep unknown keys you do not own and write them back unchanged.
-- New devices, block types, and equipment types do not bump `oadf`. A breaking change does.
+- New devices, block types, equipment types, and target kinds do not bump `oadf`. A breaking change does.
+- A scorecard names its face with `target`. An arrow sets `target` only when that arrow used another face. Custom zones use the face-plot coordinates.
+- `indoor: false` is outdoor. Weather uses quantities. Omit a condition that was not recorded.
 
 ## Check
 

@@ -1,0 +1,8 @@
+oadf: 1
+type: manifest
+title: Trilofos Archery — Maria package (worked example)
+club: Trilofos Archery.club.yaml
+people:
+  - people/maria.person.yaml
+  - people/elena.person.yaml
+  - people/nikos.person.yaml

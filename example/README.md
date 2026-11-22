@@ -10,6 +10,7 @@ Trilofos Archery.club.yaml
 people/*.person.yaml
 programmes/form-block.programme.yaml
 templates/wa18.session-template.yaml
+targets/wa-full.target.yaml
 archers/maria/
   2026-10-20.session.yaml
   bulk/

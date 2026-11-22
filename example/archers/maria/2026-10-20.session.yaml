@@ -7,6 +7,9 @@ unit: 2
 programmePath: programmes/form-block.programme.yaml
 location: Club hall
 indoor: true
+weather:
+  temperature: { value: 19, unit: C }
+  humidity: 45
 equipment:
   - id: indoor-recurve
     type: bow

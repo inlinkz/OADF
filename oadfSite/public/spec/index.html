@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Specification · Open Archery Data Format</title>
+  <meta name="description" content="OADF version 1 specification: package layout, documents, scores, series, equipment, and conformance.">
+  <link rel="canonical" href="https://oadf.dev/spec/">
+  <link rel="icon" href="/mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/site.css">
+  <meta property="og:title" content="Specification · Open Archery Data Format">
+  <meta property="og:description" content="OADF version 1 specification: package layout, documents, scores, series, equipment, and conformance.">
+  <meta property="og:url" content="https://oadf.dev/spec/">
+  <meta property="og:type" content="website">
+</head>
+<body>
+  <a class="skip" href="#content">Skip to content</a>
+  <header class="site-header">
+    <a class="brand" href="/"><img src="/mark.svg" alt="">OADF</a>
+    <nav class="site-nav" aria-label="Site"><a href="/spec/" aria-current="page">Specification</a><a href="/example/">Example</a><a href="/license/">License</a></nav>
+  </header>
+  <main id="content">
+  <div class="wrap spec">
+    <nav class="toc" aria-label="Specification">
+      <p>Contents</p>
+      <a href="#design-goals">Design goals</a><a href="#package">Package</a><a href="#documents">Documents</a><a href="#manifest" class="sub">Manifest</a><a href="#shared-types">Shared types</a><a href="#club">Club</a><a href="#person">Person</a><a href="#programme">Programme</a><a href="#session-template">Session template</a><a href="#session">Session</a><a href="#scorecard">Scorecard</a><a href="#grid-and-cards" class="sub">Grid and cards</a><a href="#totals" class="sub">Totals</a><a href="#attachment-keys" class="sub">Attachment keys</a><a href="#face" class="sub">Face</a><a href="#target">Target</a><a href="#bulk">Bulk</a><a href="#series-csv-sidecars">Series (CSV sidecars)</a><a href="#descriptor-fields-on-session-scorecard-or-bulk" class="sub">Descriptor fields (on session, scorecard, or bulk)</a><a href="#csv-rules" class="sub">CSV rules</a><a href="#limits-version-1" class="sub">Limits (version 1)</a><a href="#media">Media</a><a href="#equipment">Equipment</a><a href="#reference-from-a-session-or-scorecard" class="sub">Reference from a session or scorecard</a><a href="#known-property-keys-by-equipmenttype" class="sub">Known property keys by <code>equipmentType</code></a><a href="#extensibility">Extensibility</a><a href="#conformance">Conformance</a><a href="#worked-package">Worked package</a>
+    </nav>
+    <article class="article">
+      <h1 id="open-archery-data-format">Open Archery Data Format</h1>
+<p><strong>Version 1</strong></p>
+<p>OADF is a file package for archery training data: clubs, people, programmes, sessions, scores, equipment, sensor series, and photos.</p>
+<p>It is designed so the same package can be:</p>
+<ul><li>read by an LLM (plain YAML and CSV, explicit fields, stable ids),</li><li>validated and pretty-printed by a formatter,</li><li>loaded into statistics tools (tables, joins on ids and timestamps).</li></ul>
+<h2 id="design-goals">Design goals</h2>
+<div class="table-scroll"><table><thead><tr><th>Goal</th><th>How</th></tr></thead><tbody><tr><td>Extensible</td><td>Unknown keys and unknown <code>type</code> / device ids are kept. New series devices need no schema bump.</td></tr><tr><td>LLM-friendly</td><td>One fact, one place. Descriptive field names. Short documents. Units next to values.</td></tr><tr><td>Formatter-friendly</td><td>Strict YAML documents with a required <code>oadf</code> + <code>type</code>. Deterministic key order is recommended, not required.</td></tr><tr><td>Stats-friendly</td><td>Scores are structured rows. Dense samples are CSV with a header. Times are UTC ISO-8601. Paths are relative to the package root.</td></tr></tbody></table></div>
+<h2 id="package">Package</h2>
+<p>An OADF package is a directory (or a zip of that directory). The root contains <code>oadf.yaml</code>. All paths in documents are relative to that root, using <code>/</code> separators.</p>
+<pre><code class="language-text">oadf.yaml
+Athens Archery.club.yaml
+people/maria.person.yaml
+programmes/form-block.programme.yaml
+archers/maria/2026-10-20.session.yaml
+archers/maria/scorecards/2026-10-20-1820.scorecard.yaml
+archers/maria/bulk/2026-10-20-1802.bulk.yaml
+archers/maria/series/heart-2026-10-20.csv
+archers/maria/media/end-1-1.jpg
+archers/maria/equipment/indoor-recurve.equipment.yaml
+targets/wa-full.target.yaml</code></pre>
+<p>A zip is only transport. Unpacking restores the same tree. The archive is not a document type.</p>
+<p>Solo use is a package with one person and no club file. Club and coaching are optional.</p>
+<h2 id="documents">Documents</h2>
+<div class="table-scroll"><table><thead><tr><th>Type</th><th>File name pattern</th><th>Role</th></tr></thead><tbody><tr><td><code>manifest</code></td><td><code>oadf.yaml</code></td><td>Package version and optional index</td></tr><tr><td><code>club</code></td><td><code>*.club.yaml</code></td><td>Members and coach→archer links</td></tr><tr><td><code>person</code></td><td><code>*.person.yaml</code></td><td>One archer and/or coach</td></tr><tr><td><code>programme</code></td><td><code>*.programme.yaml</code></td><td>Multi-session plan, no scores</td></tr><tr><td><code>session_template</code></td><td><code>*.session-template.yaml</code></td><td>One practice plan, no date</td></tr><tr><td><code>session</code></td><td><code>*.session.yaml</code></td><td>One dated practice</td></tr><tr><td><code>scorecard</code></td><td><code>*.scorecard.yaml</code></td><td>Scored arrows</td></tr><tr><td><code>bulk</code></td><td><code>*.bulk.yaml</code></td><td>Arrow counts without per-arrow scores</td></tr><tr><td><code>equipment</code></td><td><code>*.equipment.yaml</code></td><td>One gear item and its revisions</td></tr><tr><td><code>target</code></td><td><code>*.target.yaml</code></td><td>One face, known or custom</td></tr><tr><td>series</td><td><code>*.csv</code></td><td>Dense samples (sidecar)</td></tr><tr><td>media</td><td><code>*.jpg</code> / <code>*.png</code> / <code>*.webp</code> / <code>*.heic</code></td><td>Photos (sidecar)</td></tr></tbody></table></div>
+<p>YAML documents are UTF-8. Writers use <code>\n</code>. Readers accept <code>\r\n</code>. JSON with the same object shape is an allowed alternate encoding for any YAML document kind; the file then ends in <code>.json</code> instead of <code>.yaml</code> (for example <code>*.session.json</code>).</p>
+<p>Every YAML document starts with:</p>
+<pre><code class="language-yaml">oadf: 1
+type: scorecard</code></pre>
+<div class="table-scroll"><table><thead><tr><th>Key</th><th>Required</th><th>Meaning</th></tr></thead><tbody><tr><td><code>oadf</code></td><td>yes</td><td>Schema major version. This document is <code>1</code></td></tr><tr><td><code>type</code></td><td>yes</td><td>Document kind from the table above (<code>manifest</code> uses <code>type: manifest</code>)</td></tr></tbody></table></div>
+<p>Unknown top-level keys are ignored by readers that do not understand them and must be written back unchanged when a tool rewrites the file. The same rule applies inside objects.</p>
+<h3 id="manifest">Manifest</h3>
+<pre><code class="language-yaml">oadf: 1
+type: manifest
+title: Athens Archery — Maria package
+club: Athens Archery.club.yaml
+people:
+  - people/maria.person.yaml
+  - people/elena.person.yaml
+  - people/nikos.person.yaml
+extensions: {}</code></pre>
+<div class="table-scroll"><table><thead><tr><th>Key</th><th>Required</th><th>Meaning</th></tr></thead><tbody><tr><td><code>title</code></td><td>no</td><td>Package label</td></tr><tr><td><code>club</code></td><td>no</td><td>Path to the club document</td></tr><tr><td><code>people</code></td><td>no</td><td>Paths to person documents</td></tr><tr><td><code>extensions</code></td><td>no</td><td>Map for tool-specific package metadata</td></tr></tbody></table></div>
+<p>The manifest does not list every session. Tools discover files by extension and <code>type</code>.</p>
+<h2 id="shared-types">Shared types</h2>
+<p><strong>Id.</strong> Lowercase letters, digits, and hyphens. Starts with a letter or digit. Length 1–64. Examples: <code>maria</code>, <code>mantis</code>, <code>indoor-recurve</code>.</p>
+<p><strong>Path.</strong> Relative to the package root. No leading <code>/</code>. No <code>..</code> segments that escape the package.</p>
+<p><strong>Calendar date.</strong> <code>YYYY-MM-DD</code>. Must be a real date.</p>
+<p><strong>UTC time.</strong> ISO-8601 with <code>Z</code>, optional fractional seconds. Example: <code>2026-10-20T13:46:12.340Z</code>.</p>
+<p><strong>Face point.</strong> Origin at target centre. +x right, +y up. Face radius is 10 (outer edge of a full face). Writers emit at most one decimal place for scores plots; readers accept more.</p>
+<p><strong>Score.</strong> One of:</p>
+<div class="table-scroll"><table><thead><tr><th>Value</th><th>Points</th><th>Meaning</th></tr></thead><tbody><tr><td><code>&quot;X&quot;</code></td><td>10</td><td>Inner ten when the face has one</td></tr><tr><td><code>10</code> … <code>1</code></td><td>that value</td><td>Ring score (YAML integer)</td></tr><tr><td><code>&quot;M&quot;</code> or <code>0</code></td><td>0</td><td>Miss; the arrow was shot</td></tr><tr><td><code>null</code> / omitted</td><td>none</td><td>Not entered</td></tr></tbody></table></div>
+<p><code>X</code> counts as a ten in totals. Whether a plotted <code>10</code> sits in an inner ten is an app face rule; the file stores what was entered.</p>
+<p><strong>Quantity.</strong> Object with <code>value</code> (number) and <code>unit</code> (string). Example: <code>{ value: 18, unit: m }</code>.</p>
+<p><strong>Indoor.</strong> <code>indoor: true</code> is a hall. <code>indoor: false</code> is outdoor. Omit the key when it was not recorded.</p>
+<p><strong>Weather.</strong> Conditions that can move an arrow. Omit <code>weather</code> when nothing was recorded, and omit any key inside it that was not observed. Do not write zeros for an unknown wind.</p>
+<pre><code class="language-yaml">weather:
+  sky: cloudy
+  temperature: { value: 12, unit: C }
+  humidity: 70
+  pressure: { value: 1013, unit: hPa }
+  wind:
+    speed: { value: 4, unit: m/s }
+    from: 270
+    source: left</code></pre>
+<div class="table-scroll"><table><thead><tr><th>Key</th><th>Required</th><th>Meaning</th></tr></thead><tbody><tr><td><code>sky</code></td><td>no</td><td>Open token: <code>clear</code>, <code>partly-cloudy</code>, <code>cloudy</code>, <code>drizzle</code>, <code>rain</code>, <code>snow</code>, <code>fog</code>. Others are kept</td></tr><tr><td><code>temperature</code></td><td>no</td><td>Quantity. Unit <code>C</code> or <code>F</code></td></tr><tr><td><code>humidity</code></td><td>no</td><td>Relative humidity, percent, 0–100</td></tr><tr><td><code>pressure</code></td><td>no</td><td>Quantity. Unit <code>hPa</code></td></tr><tr><td><code>wind.speed</code></td><td>no</td><td>Quantity. Prefer <code>m/s</code>. <code>Bft</code> is allowed for a Beaufort estimate</td></tr><tr><td><code>wind.from</code></td><td>no</td><td>Degrees, 0–360. The direction the wind comes from. 0 is north, clockwise</td></tr><tr><td><code>wind.source</code></td><td>no</td><td>Where the wind comes from as the archer faces the target: <code>head</code>, <code>tail</code>, <code>left</code>, <code>right</code>, <code>head-left</code>, <code>head-right</code>, <code>tail-left</code>, <code>tail-right</code></td></tr></tbody></table></div>
+<p>Record <code>weather</code> on the session. Repeat it on a scorecard or bulk document when that pass differed, or when the file is kept without the session. Indoor air may still have temperature and humidity. Omit wind when there was none to record.</p>
+<p><strong>Extension map.</strong> Any object under <code>extensions</code> is namespaced by tool id:</p>
+<pre><code class="language-yaml">extensions:
+  rcherry:
+    liveCode: AB12
+  other-app:
+    note: kept even if unknown here</code></pre>
+<h2 id="club">Club</h2>
+<pre><code class="language-yaml">oadf: 1
+type: club
+id: trilofos-archery
+title: Athens Archery
+description: Indoor hall club.
+members:
+  - { person: maria, roles: [archer] }
+  - { person: elena, roles: [coach] }
+  - { person: nikos, roles: [coach, archer] }
+coaching:
+  - { coach: elena, archers: [maria, nikos] }
+  - { coach: nikos, archers: [maria] }</code></pre>
+<div class="table-scroll"><table><thead><tr><th>Key</th><th>Required</th><th>Meaning</th></tr></thead><tbody><tr><td><code>id</code></td><td>yes</td><td>Stable club id</td></tr><tr><td><code>title</code></td><td>yes</td><td>Display name</td></tr><tr><td><code>description</code></td><td>no</td><td>Free text</td></tr><tr><td><code>members</code></td><td>yes</td><td>Membership list</td></tr><tr><td><code>members[].person</code></td><td>yes</td><td>Person id</td></tr><tr><td><code>members[].roles</code></td><td>yes</td><td>Non-empty. Known: <code>archer</code>, <code>coach</code>. Others kept</td></tr><tr><td><code>coaching</code></td><td>no</td><td>Coach→archer assignments</td></tr><tr><td><code>coaching[].coach</code></td><td>yes</td><td>Person id</td></tr><tr><td><code>coaching[].archers</code></td><td>yes</td><td>Person ids (one coach, many archers)</td></tr></tbody></table></div>
+<p>An archer may appear under more than one coach. Roles on membership are not the same as coaching links.</p>
+<h2 id="person">Person</h2>
+<pre><code class="language-yaml">oadf: 1
+type: person
+id: maria
+title: Maria P.
+club: trilofos-archery</code></pre>
+<div class="table-scroll"><table><thead><tr><th>Key</th><th>Required</th><th>Meaning</th></tr></thead><tbody><tr><td><code>id</code></td><td>yes</td><td>Stable person id</td></tr><tr><td><code>title</code></td><td>yes</td><td>Display name</td></tr><tr><td><code>club</code></td><td>no</td><td>Club id</td></tr><tr><td><code>description</code></td><td>no</td><td>Free text</td></tr></tbody></table></div>
+<h2 id="programme">Programme</h2>
+<p>A programme is publishable and self-contained. It holds no scores and no file paths to recorded sessions.</p>
+<pre><code class="language-yaml">oadf: 1
+type: programme
+id: form-block
+title: Form block
+description: Two practices. Volume, then a scored card.
+units:
+  - index: 1
+    title: Volume
+    blocks:
+      - type: text
+        body: Blank bale only. Stop at 120 arrows.
+      - type: bulk
+        label: Blank bale
+        targetArrows: 120
+  - index: 2
+    title: Score
+    blocks:
+      - type: text
+        body: One WA 18 card. Record the sight if it is connected.
+      - type: scorecard
+        label: WA 18
+        devices: [mantis, heart-rate, wii-balance]
+        config:
+          endsPerCard: 2
+          arrowsPerEnd: 3
+          cards: 1
+          round: WA 18 (40cm)
+          distance: { value: 18, unit: m }
+          face: { value: 40, unit: cm }
+          indoor: true</code></pre>
+<p><code>units[].index</code> is 1-based and unique. Block <code>type</code> values in version 1: <code>text</code>, <code>scorecard</code>, <code>bulk</code>. Unknown block types are kept.</p>
+<h2 id="session-template">Session template</h2>
+<p>Same block list as a programme unit, without a date and without recorded paths.</p>
+<pre><code class="language-yaml">oadf: 1
+type: session_template
+title: WA 18
+blocks:
+  - type: text
+    body: Twenty arrows on the blank bale, then one scored card.
+  - type: bulk
+    label: Blank bale
+  - type: scorecard
+    label: WA 18</code></pre>
+<h2 id="session">Session</h2>
+<p>One practice on one calendar date. Recorded arrows live in linked scorecard and bulk files.</p>
+<pre><code class="language-yaml">oadf: 1
+type: session
+date: 2026-10-20
+archer: maria
+programme: form-block
+unit: 2
+programmePath: programmes/form-block.programme.yaml
+location: Club hall
+indoor: true
+weather:
+  temperature: { value: 19, unit: C }
+  humidity: 45
+equipment:
+  - { id: indoor-recurve, type: bow, title: Indoor recurve, rev: 1, at: 2026-09-01T08:00:00Z }
+blocks:
+  - type: text
+    body: Twenty arrows on the blank bale, then one scored WA 18 card.
+  - type: bulk
+    label: Blank bale
+    path: archers/maria/bulk/2026-10-20-1802.bulk.yaml
+  - type: scorecard
+    label: WA 18
+    path: archers/maria/scorecards/2026-10-20-1820.scorecard.yaml
+series:
+  - device: heart-rate
+    attach: file
+    path: archers/maria/series/heart-2026-10-20.csv
+media:
+  - kind: photo
+    attach: file
+    path: archers/maria/media/session-hall.jpg</code></pre>
+<div class="table-scroll"><table><thead><tr><th>Key</th><th>Required</th><th>Meaning</th></tr></thead><tbody><tr><td><code>date</code></td><td>yes</td><td>Calendar date</td></tr><tr><td><code>archer</code></td><td>no</td><td>Person id</td></tr><tr><td><code>programme</code></td><td>no</td><td>Programme id</td></tr><tr><td><code>unit</code></td><td>no</td><td>1-based unit index</td></tr><tr><td><code>programmePath</code></td><td>no</td><td>Path to the programme file</td></tr><tr><td><code>location</code></td><td>no</td><td>Free text</td></tr><tr><td><code>indoor</code></td><td>no</td><td><code>true</code> hall, <code>false</code> outdoor. Omit when not recorded</td></tr><tr><td><code>weather</code></td><td>no</td><td>Conditions for the practice (see Weather)</td></tr><tr><td><code>equipment</code></td><td>no</td><td>Gear used that day (see Equipment references)</td></tr><tr><td><code>blocks</code></td><td>yes</td><td>Ordered steps</td></tr><tr><td><code>series</code></td><td>no</td><td>Series attachments for the whole practice</td></tr><tr><td><code>media</code></td><td>no</td><td>Media attachments for the whole practice</td></tr></tbody></table></div>
+<p>Empty <code>path</code> on a scorecard/bulk block means the step exists but has not been started.</p>
+<h2 id="scorecard">Scorecard</h2>
+<pre><code class="language-yaml">oadf: 1
+type: scorecard
+archer: maria
+session: archers/maria/2026-10-20.session.yaml
+round: WA 18 (40cm)
+distance: { value: 18, unit: m }
+face: { value: 40, unit: cm }
+target: wa-full
+indoor: true
+location: Club hall
+grid:
+  endsPerCard: 2
+  arrowsPerEnd: 3
+  cards: 1
+notes:
+  training: Quiet hall, first scoring end.
+  cards: [Watch the left hand.]
+equipment:
+  - { id: indoor-recurve, type: bow, title: Indoor recurve, rev: 1, at: 2026-09-01T08:00:00Z }
+cards:
+  - ends:
+      - note: Held long on the second arrow.
+        arrows:
+          - { score: X, x: 0.1, y: 0.2, at: 2026-10-20T13:46:12.340Z }
+          - { score: 9, x: 1.0, y: -0.5, at: 2026-10-20T13:46:18.100Z }
+          - { score: 8, x: -0.4, y: 0.6, at: 2026-10-20T13:46:30.000Z }
+      - note: Called the first arrow out.
+        arrows:
+          - { score: M, x: 8, y: 3, at: 2026-10-20T13:50:00.000Z }
+          - { score: 10, at: 2026-10-20T13:50:12.000Z }
+          - { at: 2026-10-20T13:50:20.000Z }
+series:
+  - device: mantis
+    kind: aim
+    attach: shot
+    key: 1.1.1
+    path: archers/maria/series/aim-1-1-1.csv
+    hz: 400
+    origin: release
+    breakIndex: 1
+    unit: deg
+media:
+  - kind: photo
+    attach: end
+    key: &quot;1.1&quot;
+    path: archers/maria/media/end-1-1.jpg
+  - kind: photo
+    attach: shot
+    key: &quot;1.1.2&quot;
+    path: archers/maria/media/shot-1-1-2.jpg</code></pre>
+<h3 id="grid-and-cards">Grid and cards</h3>
+<div class="table-scroll"><table><thead><tr><th>Key</th><th>Required</th><th>Meaning</th></tr></thead><tbody><tr><td><code>grid.endsPerCard</code></td><td>yes</td><td>Planned rows per card (1–60)</td></tr><tr><td><code>grid.arrowsPerEnd</code></td><td>yes</td><td>Planned arrows per end (1–24)</td></tr><tr><td><code>grid.cards</code></td><td>yes</td><td>Planned card count (1–10)</td></tr><tr><td><code>cards</code></td><td>yes</td><td>Recorded cards in order</td></tr></tbody></table></div>
+<p>Each card has <code>ends</code> (array). Each end has:</p>
+<div class="table-scroll"><table><thead><tr><th>Key</th><th>Required</th><th>Meaning</th></tr></thead><tbody><tr><td><code>arrows</code></td><td>yes</td><td>Length may be shorter than <code>arrowsPerEnd</code>; missing slots are not entered</td></tr><tr><td><code>note</code></td><td>no</td><td>Free text for that end</td></tr></tbody></table></div>
+<p>Each arrow object:</p>
+<div class="table-scroll"><table><thead><tr><th>Key</th><th>Required</th><th>Meaning</th></tr></thead><tbody><tr><td><code>score</code></td><td>no</td><td>Score value as above</td></tr><tr><td><code>x</code>, <code>y</code></td><td>no</td><td>Face point</td></tr><tr><td><code>at</code></td><td>no</td><td>UTC release / entry time</td></tr><tr><td><code>target</code></td><td>no</td><td>Target id when this arrow used a different face from the card</td></tr></tbody></table></div>
+<p>Empty arrow <code>{}</code> is allowed. A timed but unscored shot is <code>{ at: ... }</code> only. Omit <code>target</code> when the arrow used the card face.</p>
+<p>Card index, end index, and arrow index are <strong>1-based</strong> when used as keys (<code>1.1.2</code> = card 1, end 1, arrow 2).</p>
+<h3 id="totals">Totals</h3>
+<p>Writers may omit cached totals. Readers and stats tools recompute:</p>
+<ul><li>points: <code>X</code>→10, <code>M</code>/<code>0</code>→0, integers as written,</li><li>only arrows with a score count,</li><li>blank / timed-only arrows do not count as misses.</li></ul>
+<h3 id="attachment-keys">Attachment keys</h3>
+<div class="table-scroll"><table><thead><tr><th><code>attach</code></th><th><code>key</code></th></tr></thead><tbody><tr><td><code>shot</code></td><td><code>card.end.arrow</code> (example <code>1.1.2</code>)</td></tr><tr><td><code>end</code></td><td><code>card.end</code> (example <code>1.1</code>)</td></tr><tr><td><code>round</code></td><td>bulk round number as string or integer</td></tr><tr><td><code>file</code></td><td>omit <code>key</code></td></tr></tbody></table></div>
+<h3 id="face">Face</h3>
+<div class="table-scroll"><table><thead><tr><th>Key</th><th>Required</th><th>Meaning</th></tr></thead><tbody><tr><td><code>target</code></td><td>no</td><td>Target id. The face for every arrow on this card</td></tr><tr><td><code>face</code></td><td>no</td><td>Diameter shot that day</td></tr></tbody></table></div>
+<h2 id="target">Target</h2>
+<p>One face, one file. The scorecard names it with <code>target</code>. The diameter of that pass stays on the scorecard as <code>face</code>.</p>
+<pre><code class="language-yaml">oadf: 1
+type: target
+id: wa-full
+title: WA Full
+kind: wa-full</code></pre>
+<div class="table-scroll"><table><thead><tr><th>Key</th><th>Required</th><th>Meaning</th></tr></thead><tbody><tr><td><code>id</code></td><td>yes</td><td>Stable id</td></tr><tr><td><code>title</code></td><td>yes</td><td>Display name</td></tr><tr><td><code>kind</code></td><td>no</td><td>Open token for a known face: <code>wa-full</code>, <code>wa-6-ring</code>, <code>vegas-3-spot</code>, … Unknown kinds are kept</td></tr><tr><td><code>zones</code></td><td>no</td><td>Drawn regions. Present when the face is custom</td></tr><tr><td><code>spots</code></td><td>no</td><td>Extra spot centres. Omit for one face centred on the origin</td></tr></tbody></table></div>
+<p>A reader that knows <code>kind</code> draws that face without <code>zones</code>. A custom face omits <code>kind</code> and lists <code>zones</code>. When both are present, <code>zones</code> are the picture in this package.</p>
+<p>Coordinates match face points: origin at centre, +x right, +y up, radius 10 at the outer edge of the full face.</p>
+<p>Zone order is hit priority. The first zone that contains a point wins. <code>score</code> on a zone is its label. The arrow keeps the score that was entered.</p>
+<div class="table-scroll"><table><thead><tr><th>Key</th><th>Required</th><th>Meaning</th></tr></thead><tbody><tr><td><code>score</code></td><td>yes</td><td>Points label for that region</td></tr><tr><td><code>shape</code></td><td>yes</td><td><code>circle</code>, <code>polygon</code>, or <code>bezier</code></td></tr><tr><td><code>fill</code></td><td>no</td><td>Hex colour, such as <code>#F6EB0F</code></td></tr><tr><td><code>r</code>, <code>cx</code>, <code>cy</code></td><td>circle</td><td>Radius, and an optional centre. The default centre is the origin</td></tr><tr><td><code>points</code></td><td>polygon</td><td><code>[x, y]</code> vertices, at least 3</td></tr><tr><td><code>nodes</code></td><td>bezier</td><td>Closed chain. Each node is <code>x</code>, <code>y</code>, <code>inX</code>, <code>inY</code>, <code>outX</code>, <code>outY</code></td></tr></tbody></table></div>
+<p>Without <code>spots</code>, zones sit on the full face. With <code>spots</code>, each spot is <code>{ x, y, r }</code> in full-face space, and zones are local to a spot, where radius 10 is that spot's edge. Arrow <code>x</code> and <code>y</code> stay in full-face space either way.</p>
+<pre><code class="language-yaml">oadf: 1
+type: target
+id: blank-spot
+title: Blank spot
+zones:
+  - { score: 5, fill: &quot;#F6EB0F&quot;, shape: circle, r: 2 }
+  - { score: 0, fill: &quot;#B7B7B7&quot;, shape: circle, r: 10 }</code></pre>
+<h2 id="bulk">Bulk</h2>
+<pre><code class="language-yaml">oadf: 1
+type: bulk
+archer: maria
+location: Club hall
+indoor: true
+distance: { value: 5, unit: m }
+rounds:
+  - { arrows: 20, at: 2026-10-20T16:02:14.742Z }
+  - { arrows: 10, at: 2026-10-20T16:03:25.589Z }
+series:
+  - device: wii-balance
+    attach: round
+    key: 1
+    path: archers/maria/series/balance-round-1.csv</code></pre>
+<div class="table-scroll"><table><thead><tr><th>Key</th><th>Required</th><th>Meaning</th></tr></thead><tbody><tr><td><code>rounds</code></td><td>yes</td><td>In commit order</td></tr><tr><td><code>rounds[].arrows</code></td><td>yes</td><td>Integer ≥ 1</td></tr><tr><td><code>rounds[].at</code></td><td>yes</td><td>UTC time</td></tr></tbody></table></div>
+<h2 id="series-csv-sidecars">Series (CSV sidecars)</h2>
+<p>Dense samples never live inside YAML. YAML holds a descriptor; CSV holds rows.</p>
+<h3 id="descriptor-fields-on-session-scorecard-or-bulk">Descriptor fields (on session, scorecard, or bulk)</h3>
+<div class="table-scroll"><table><thead><tr><th>Key</th><th>Required</th><th>Meaning</th></tr></thead><tbody><tr><td><code>device</code></td><td>yes</td><td>Device id (<code>mantis</code>, <code>heart-rate</code>, <code>wii-balance</code>, or any new id)</td></tr><tr><td><code>attach</code></td><td>yes</td><td><code>shot</code> / <code>end</code> / <code>round</code> / <code>file</code></td></tr><tr><td><code>key</code></td><td>when not <code>file</code></td><td>Attachment key</td></tr><tr><td><code>path</code></td><td>yes</td><td>Package path to the CSV</td></tr><tr><td><code>kind</code></td><td>no</td><td>Registered meaning. Version 1 registers <code>aim</code></td></tr><tr><td><code>channels</code></td><td>no</td><td>Column schema when not implied by <code>kind</code></td></tr><tr><td><code>hz</code></td><td>no</td><td>Sample rate when time is implicit</td></tr><tr><td><code>origin</code></td><td>no</td><td><code>release</code> or <code>start</code></td></tr><tr><td><code>breakIndex</code></td><td>no</td><td>Sample index of release when <code>origin: release</code></td></tr><tr><td><code>unit</code></td><td>no</td><td>Shared unit when all channels share one</td></tr><tr><td><code>time</code></td><td>no</td><td><code>iso</code> when the CSV first column is UTC time</td></tr></tbody></table></div>
+<p>Identity of a payload: <code>device</code> + <code>attach</code> + <code>key</code> (+ owning file). If duplicated, readers use the first and still preserve the rest on rewrite.</p>
+<h3 id="csv-rules">CSV rules</h3>
+<ul><li>UTF-8, <code>,</code> separator, <code>\n</code> lines.</li><li>First row is a header.</li><li>Numbers are finite decimals. Empty cells are missing values.</li><li>Writers do not put comments in CSV.</li></ul>
+<p><strong>Aim (</strong><code>kind: aim</code><strong>).</strong> Columns: <code>yaw,pitch</code> in degrees. +yaw right, +pitch up. Sample <code>i</code> is at <code>(i - breakIndex) / hz</code> seconds from release when <code>origin: release</code>. No time column.</p>
+<pre><code class="language-csv">yaw,pitch
+0.012,-0.004
+0,0
+-0.020,0.008</code></pre>
+<p><strong>Generic series.</strong> Either:</p>
+<ol><li><code>time</code> column (ISO UTC) plus one column per channel, or</li><li>no time column, with <code>hz</code> + <code>origin</code> on the descriptor (row index → time).</li></ol>
+<p>Heart rate example descriptor: <code>device: heart-rate</code>, <code>attach: file</code>, <code>time: iso</code>. CSV:</p>
+<pre><code class="language-csv">time,bpm
+2026-10-20T13:46:10.000Z,74
+2026-10-20T13:46:12.340Z,78</code></pre>
+<p>Balance around release: channels <code>tr,br,tl,bl</code> in kg; <code>hz</code> + <code>origin: release</code> + <code>breakIndex</code>.</p>
+<p>Channel names are unique within one CSV. Units belong on the descriptor (<code>channels: [{ name: bpm, unit: bpm }]</code>) so stats tools and LLMs do not guess.</p>
+<h3 id="limits-version-1">Limits (version 1)</h3>
+<div class="table-scroll"><table><thead><tr><th>Field</th><th>Range</th></tr></thead><tbody><tr><td>Scorecard cards</td><td>1–10</td></tr><tr><td>Ends per card</td><td>1–60</td></tr><tr><td>Arrows per end</td><td>1–24</td></tr><tr><td>Bulk arrows in one round</td><td>integer ≥ 1</td></tr><tr><td>Series sample rate</td><td>1–4000 Hz</td></tr><tr><td>Aim window before/after release</td><td>1–15 s when given</td></tr><tr><td>Aim samples in one trace</td><td>2–13000</td></tr></tbody></table></div>
+<h2 id="media">Media</h2>
+<p>Binary files only. YAML descriptors list them; bytes are never inlined.</p>
+<pre><code class="language-yaml">media:
+  - kind: photo
+    attach: end
+    key: &quot;1.1&quot;
+    path: archers/maria/media/end-1-1.jpg</code></pre>
+<div class="table-scroll"><table><thead><tr><th>Key</th><th>Required</th><th>Meaning</th></tr></thead><tbody><tr><td><code>kind</code></td><td>yes</td><td><code>photo</code> in version 1; other kinds kept</td></tr><tr><td><code>attach</code></td><td>yes</td><td>Same as series</td></tr><tr><td><code>key</code></td><td>when not <code>file</code></td><td>Same as series</td></tr><tr><td><code>path</code></td><td>yes</td><td>Path to the binary</td></tr></tbody></table></div>
+<h2 id="equipment">Equipment</h2>
+<p>One physical item, one file, full revision history. <code>props</code> on each revision is the full state after the change, not a patch.</p>
+<pre><code class="language-yaml">oadf: 1
+type: equipment
+id: indoor-recurve
+equipmentType: bow
+title: Indoor recurve
+brand: hoyt
+owner: maria
+description: Hall bow.
+revisions:
+  - rev: 1
+    at: 2026-09-01T08:00:00Z
+    props:
+      bowType: recurve
+      size: { value: 68, unit: in }
+      drawWeight: { value: 34, unit: lb }
+      parts: [shibuya-ultima, longrod-30, string-8190]
+  - rev: 2
+    at: 2026-11-02T18:00:00Z
+    props:
+      bowType: recurve
+      size: { value: 68, unit: in }
+      drawWeight: { value: 34, unit: lb }
+      limbs: Wiawis NS
+      parts: [axcel-achieve, longrod-30, string-8190]
+media:
+  - kind: photo
+    attach: file
+    path: archers/maria/media/indoor-recurve.jpg</code></pre>
+<div class="table-scroll"><table><thead><tr><th>Key</th><th>Required</th><th>Meaning</th></tr></thead><tbody><tr><td><code>id</code></td><td>yes</td><td>Stable id</td></tr><tr><td><code>equipmentType</code></td><td>yes</td><td>Open token: <code>bow</code>, <code>arrow</code>, <code>sight</code>, <code>stabilizer</code>, <code>weight</code>, <code>string</code>, <code>brand</code>, …</td></tr><tr><td><code>title</code></td><td>yes</td><td>Display name</td></tr><tr><td><code>brand</code></td><td>no</td><td>Brand equipment id</td></tr><tr><td><code>owner</code></td><td>no</td><td>Person id</td></tr><tr><td><code>revisions</code></td><td>yes</td><td>Ordered; <code>rev</code> ≥ 1 unique; <code>at</code> UTC</td></tr></tbody></table></div>
+<p>The state at time T is the revision with the greatest <code>at</code> ≤ T.</p>
+<p>Field name is <code>equipmentType</code> so it does not clash with document <code>type</code>.</p>
+<h3 id="reference-from-a-session-or-scorecard">Reference from a session or scorecard</h3>
+<pre><code class="language-yaml">equipment:
+  - id: indoor-recurve
+    type: bow
+    title: Indoor recurve
+    rev: 1
+    at: 2026-09-01T08:00:00Z</code></pre>
+<p><code>id</code> is required. <code>type</code>, <code>title</code>, <code>rev</code>, and <code>at</code> snapshot the day so the practice still reads if the equipment file is missing.</p>
+<h3 id="known-property-keys-by-equipmenttype">Known property keys by <code>equipmentType</code></h3>
+<div class="table-scroll"><table><thead><tr><th><code>equipmentType</code></th><th>Property keys</th></tr></thead><tbody><tr><td><code>bow</code></td><td><code>bowType</code>, <code>size</code>, <code>drawWeight</code>, <code>braceHeight</code>, <code>tiller</code>, <code>limbs</code>, <code>string</code>, <code>nockingPoint</code>, <code>parts</code></td></tr><tr><td><code>arrow</code></td><td><code>spine</code>, <code>length</code>, <code>diameter</code>, <code>pointWeight</code>, <code>vanes</code>, <code>nock</code>, <code>count</code></td></tr><tr><td><code>stabilizer</code></td><td><code>role</code>, <code>length</code>, <code>weights</code></td></tr><tr><td><code>weight</code></td><td><code>mass</code>, <code>mount</code></td></tr><tr><td><code>sight</code></td><td><code>extension</code>, <code>magnification</code>, <code>marks</code></td></tr><tr><td><code>string</code></td><td><code>mountedOn</code>, <code>strands</code></td></tr><tr><td><code>brand</code></td><td>none required</td></tr></tbody></table></div>
+<p>Measured values use <code>{ value, unit }</code>. <code>marks</code> is <code>[{ distance, unit, mark }]</code>. Unknown property keys are kept.</p>
+<h2 id="extensibility">Extensibility</h2>
+<ol><li><strong>New device.</strong> Add a series descriptor with a new <code>device</code> id, <code>channels</code> with units, and a CSV. No schema version bump.</li><li><strong>Registered kind.</strong> When several apps share meaning (as with <code>aim</code>), document a <code>kind</code> and its columns in a newer OADF major version. Until then, <code>channels</code> on the descriptor is enough.</li><li><strong>New session block.</strong> New <code>blocks[].type</code> string + fields. Older tools keep the object.</li><li><strong>New document kind.</strong> New <code>type</code> + file name pattern. Do not overload <code>scorecard</code> / <code>bulk</code>.</li><li><strong>New equipment type.</strong> New <code>equipmentType</code> token + property keys.</li><li><strong>New media kind.</strong> New <code>media[].kind</code>; keep <code>attach</code> / <code>path</code>.</li><li><strong>Tool private data.</strong> Use <code>extensions.&lt;toolId&gt;</code> maps. Foreign tools round-trip them.</li><li><strong>New target kind.</strong> New <code>kind</code> on a target document. No schema version bump.</li></ol>
+<p>Breaking changes bump <code>oadf</code> to a new major version. Additive open-token growth does not.</p>
+<h2 id="conformance">Conformance</h2>
+<p>A reader:</p>
+<ul><li>Requires <code>oadf: 1</code> and <code>type</code> on YAML documents.</li><li>Resolves paths from the package root.</li><li>Recomputes score totals from arrows.</li><li>Leaves missing scores missing (does not invent misses).</li><li>Loads series only from CSV sidecars named by descriptors.</li><li>Keeps unknown keys, unknown block types, unknown devices, unknown equipment types, and unknown target kinds.</li><li>Accepts JSON documents with the same shape.</li></ul>
+<p>A writer:</p>
+<ul><li>Emits UTC times as ISO-8601 <code>Z</code>.</li><li>Emits face coordinates with +y up, radius 10.</li><li>Names <code>target</code> on a scorecard when the face is known. Zone geometry uses the same coordinates.</li><li>Emits series and photos as sidecars, never inlined bytes or sample matrices in YAML.</li><li>Uses 1-based <code>card.end.arrow</code> keys.</li><li>Round-trips unknown fields it does not own.</li><li>May omit club/person files in a solo package.</li></ul>
+<h2 id="worked-package">Worked package</h2>
+<p>See the <code>example/</code> directory in this repository. Bluetooth radio layouts stay in <code>bluetooth.md</code> and feed aim CSV columns; they are not part of the YAML encoding.</p>
+    </article>
+  </div></main>
+  <footer class="site-footer">
+    <span>Open Archery Data Format, version 1</span>
+    <a href="/license/">MIT License · akorbeti</a>
+  </footer>
+</body>
+</html>

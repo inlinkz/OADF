@@ -5,6 +5,7 @@ session: archers/maria/2026-10-20.session.yaml
 round: WA 18 (40cm)
 distance: { value: 18, unit: m }
 face: { value: 40, unit: cm }
+target: wa-full
 indoor: true
 location: Club hall
 grid:

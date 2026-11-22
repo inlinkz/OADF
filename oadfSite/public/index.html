@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Open Archery Data Format</title>
+  <meta name="description" content="OADF version 1 is a directory of YAML and CSV for archery training: clubs, people, programmes, sessions, scores, equipment, sensor series, and photos.">
+  <link rel="canonical" href="https://oadf.dev/">
+  <link rel="icon" href="/mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/site.css">
+  <meta property="og:title" content="Open Archery Data Format">
+  <meta property="og:description" content="OADF version 1 is a directory of YAML and CSV for archery training: clubs, people, programmes, sessions, scores, equipment, sensor series, and photos.">
+  <meta property="og:url" content="https://oadf.dev/">
+  <meta property="og:type" content="website">
+</head>
+<body>
+  <a class="skip" href="#content">Skip to content</a>
+  <header class="site-header">
+    <a class="brand" href="/"><img src="/mark.svg" alt="">OADF</a>
+    <nav class="site-nav" aria-label="Site"><a href="/spec/">Specification</a><a href="/example/">Example</a><a href="/license/">License</a></nav>
+  </header>
+  <main id="content">
+  <div class="wrap">
+    <p class="kicker">Version 1</p>
+    <h1>Open Archery Data Format</h1>
+    <p class="lede">A directory of YAML and CSV for archery training. The same package is meant to be read by a person, a statistics tool, or a language model.</p>
+    <p>A package holds clubs, people, programmes, sessions, scores, equipment, sensor series, and photos. A zip is only transport: unpacking restores the same tree. The text of the <a href="/spec/">specification</a> is the contract. The <a href="/example/">worked package</a> is the oracle.</p>
+
+    <h2>A package</h2>
+    <p>The root holds <code>oadf.yaml</code>. Every path inside a document is relative to that root. This tree is the shape; the names are an illustration.</p>
+    <pre class="tree">oadf.yaml
+Athens Archery.club.yaml
+people/maria.person.yaml
+programmes/form-block.programme.yaml
+archers/maria/2026-10-20.session.yaml
+archers/maria/scorecards/2026-10-20-1820.scorecard.yaml
+archers/maria/bulk/2026-10-20-1802.bulk.yaml
+archers/maria/series/heart-2026-10-20.csv
+archers/maria/media/end-1-1.jpg
+archers/maria/equipment/indoor-recurve.equipment.yaml</pre>
+
+    <h2>Documents</h2>
+    <div class="table-scroll"><table>
+      <thead><tr><th>Type</th><th>File</th><th>Role</th></tr></thead>
+      <tbody>
+        <tr><td><code>manifest</code></td><td><code>oadf.yaml</code></td><td>Package version and optional index</td></tr>
+        <tr><td><code>club</code></td><td><code>*.club.yaml</code></td><td>Members and coach→archer links</td></tr>
+        <tr><td><code>person</code></td><td><code>*.person.yaml</code></td><td>One archer and/or coach</td></tr>
+        <tr><td><code>programme</code></td><td><code>*.programme.yaml</code></td><td>Multi-session plan, no scores</td></tr>
+        <tr><td><code>session_template</code></td><td><code>*.session-template.yaml</code></td><td>One practice plan, no date</td></tr>
+        <tr><td><code>session</code></td><td><code>*.session.yaml</code></td><td>One dated practice</td></tr>
+        <tr><td><code>scorecard</code></td><td><code>*.scorecard.yaml</code></td><td>Scored arrows</td></tr>
+        <tr><td><code>bulk</code></td><td><code>*.bulk.yaml</code></td><td>Arrow counts without per-arrow scores</td></tr>
+        <tr><td><code>equipment</code></td><td><code>*.equipment.yaml</code></td><td>One gear item and its revisions</td></tr>
+        <tr><td>series</td><td><code>*.csv</code></td><td>Dense samples, as a sidecar</td></tr>
+        <tr><td>media</td><td>jpg, png, webp, heic</td><td>Photos, as sidecars</td></tr>
+      </tbody>
+    </table></div>
+
+    <h2>Rules that stay fixed in version 1</h2>
+    <ul>
+      <li>Every YAML document starts with <code>oadf: 1</code> and <code>type</code>.</li>
+      <li>A score that was not entered is omitted. <code>M</code> or <code>0</code> is a miss. A blank is not a miss.</li>
+      <li>Face plots use the centre as origin, +x right, +y up, and radius 10 at the outer edge.</li>
+      <li>Times are UTC with a <code>Z</code> suffix. Dates are <code>YYYY-MM-DD</code>.</li>
+      <li>Samples and photos stay in sidecar files. They are never inlined in YAML.</li>
+      <li>Unknown keys are kept and written back unchanged.</li>
+    </ul>
+    <p>JSON with the same object shape is allowed. The file then ends in <code>.json</code>.</p>
+  </div></main>
+  <footer class="site-footer">
+    <span>Open Archery Data Format, version 1</span>
+    <a href="/license/">MIT License · akorbeti</a>
+  </footer>
+</body>
+</html>

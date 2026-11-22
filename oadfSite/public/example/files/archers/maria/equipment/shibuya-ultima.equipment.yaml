@@ -1,0 +1,22 @@
+oadf: 1
+type: equipment
+id: shibuya-ultima
+equipmentType: sight
+title: Shibuya Ultima
+brand: shibuya
+owner: maria
+description: Hall sight.
+revisions:
+  - rev: 1
+    at: 2026-09-01T08:00:00Z
+    props:
+      extension: { value: 6, unit: in }
+      magnification: 0.75
+      marks: []
+  - rev: 2
+    at: 2026-10-12T09:00:00Z
+    props:
+      extension: { value: 6, unit: in }
+      magnification: 0.75
+      marks:
+        - { distance: 18, unit: m, mark: "4.2" }

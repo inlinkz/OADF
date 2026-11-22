@@ -1,0 +1,19 @@
+oadf: 1
+type: equipment
+id: ace-670
+equipmentType: arrow
+title: ACE 670
+brand: easton
+owner: maria
+description: Indoor set.
+revisions:
+  - rev: 1
+    at: 2026-09-01T08:00:00Z
+    props:
+      spine: "670"
+      length: { value: 28, unit: in }
+      diameter: { value: 5, unit: mm }
+      pointWeight: { value: 120, unit: gr }
+      vanes: Spin Wing 1.75
+      nock: Beiter
+      count: 12

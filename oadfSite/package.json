@@ -1,0 +1,14 @@
+{
+  "name": "oadf-site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "dev": "node build.mjs && node serve.mjs",
+    "deploy": "node build.mjs && cf deploy ./public",
+    "test": "node --test serve.test.mjs"
+  },
+  "devDependencies": {
+    "cf": "^1.0.0-rc.2"
+  }
+}

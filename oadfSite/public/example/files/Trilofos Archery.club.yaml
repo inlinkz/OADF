@@ -1,0 +1,17 @@
+oadf: 1
+type: club
+id: trilofos-archery
+title: Trilofos Archery
+description: Indoor hall club.
+members:
+  - person: maria
+    roles: [archer]
+  - person: elena
+    roles: [coach]
+  - person: nikos
+    roles: [coach, archer]
+coaching:
+  - coach: elena
+    archers: [maria, nikos]
+  - coach: nikos
+    archers: [maria]

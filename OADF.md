@@ -10,8 +10,6 @@ It is designed so the same package can be:
 - validated and pretty-printed by a formatter,
 - loaded into statistics tools (tables, joins on ids and timestamps).
 
-There is no Markdown dual encoding, no HTML comments, and no wiki links. Any earlier draft that used those is void and was never shipped.
-
 ## Design goals
 
 | Goal | How |
@@ -36,6 +34,7 @@ archers/maria/bulk/2026-10-20-1802.bulk.yaml
 archers/maria/series/heart-2026-10-20.csv
 archers/maria/media/end-1-1.jpg
 archers/maria/equipment/indoor-recurve.equipment.yaml
+targets/wa-full.target.yaml
 ```
 
 A zip is only transport. Unpacking restores the same tree. The archive is not a document type.
@@ -55,6 +54,7 @@ Solo use is a package with one person and no club file. Club and coaching are op
 | `scorecard` | `*.scorecard.yaml` | Scored arrows |
 | `bulk` | `*.bulk.yaml` | Arrow counts without per-arrow scores |
 | `equipment` | `*.equipment.yaml` | One gear item and its revisions |
+| `target` | `*.target.yaml` | One face, known or custom |
 | series | `*.csv` | Dense samples (sidecar) |
 | media | `*.jpg` / `*.png` / `*.webp` / `*.heic` | Photos (sidecar) |
 
@@ -122,6 +122,34 @@ The manifest does not list every session. Tools discover files by extension and 
 
 **Quantity.** Object with `value` (number) and `unit` (string). Example: `{ value: 18, unit: m }`.
 
+**Indoor.** `indoor: true` is a hall. `indoor: false` is outdoor. Omit the key when it was not recorded.
+
+**Weather.** Conditions that can move an arrow. Omit `weather` when nothing was recorded, and omit any key inside it that was not observed. Do not write zeros for an unknown wind.
+
+```yaml
+weather:
+  sky: cloudy
+  temperature: { value: 12, unit: C }
+  humidity: 70
+  pressure: { value: 1013, unit: hPa }
+  wind:
+    speed: { value: 4, unit: m/s }
+    from: 270
+    source: left
+```
+
+| Key | Required | Meaning |
+| --- | --- | --- |
+| `sky` | no | Open token: `clear`, `partly-cloudy`, `cloudy`, `drizzle`, `rain`, `snow`, `fog`. Others are kept |
+| `temperature` | no | Quantity. Unit `C` or `F` |
+| `humidity` | no | Relative humidity, percent, 0–100 |
+| `pressure` | no | Quantity. Unit `hPa` |
+| `wind.speed` | no | Quantity. Prefer `m/s`. `Bft` is allowed for a Beaufort estimate |
+| `wind.from` | no | Degrees, 0–360. The direction the wind comes from. 0 is north, clockwise |
+| `wind.source` | no | Where the wind comes from as the archer faces the target: `head`, `tail`, `left`, `right`, `head-left`, `head-right`, `tail-left`, `tail-right` |
+
+Record `weather` on the session. Repeat it on a scorecard or bulk document when that pass differed, or when the file is kept without the session. Indoor air may still have temperature and humidity. Omit wind when there was none to record.
+
 **Extension map.** Any object under `extensions` is namespaced by tool id:
 
 ```yaml
@@ -137,7 +165,7 @@ extensions:
 ```yaml
 oadf: 1
 type: club
-id: athens-archery
+id: trilofos-archery
 title: Athens Archery
 description: Indoor hall club.
 members:
@@ -170,7 +198,7 @@ oadf: 1
 type: person
 id: maria
 title: Maria P.
-club: athens-archery
+club: trilofos-archery
 ```
 
 | Key | Required | Meaning |
@@ -250,6 +278,9 @@ unit: 2
 programmePath: programmes/form-block.programme.yaml
 location: Club hall
 indoor: true
+weather:
+  temperature: { value: 19, unit: C }
+  humidity: 45
 equipment:
   - { id: indoor-recurve, type: bow, title: Indoor recurve, rev: 1, at: 2026-09-01T08:00:00Z }
 blocks:
@@ -279,7 +310,8 @@ media:
 | `unit` | no | 1-based unit index |
 | `programmePath` | no | Path to the programme file |
 | `location` | no | Free text |
-| `indoor` | no | Boolean |
+| `indoor` | no | `true` hall, `false` outdoor. Omit when not recorded |
+| `weather` | no | Conditions for the practice (see Weather) |
 | `equipment` | no | Gear used that day (see Equipment references) |
 | `blocks` | yes | Ordered steps |
 | `series` | no | Series attachments for the whole practice |
@@ -297,6 +329,7 @@ session: archers/maria/2026-10-20.session.yaml
 round: WA 18 (40cm)
 distance: { value: 18, unit: m }
 face: { value: 40, unit: cm }
+target: wa-full
 indoor: true
 location: Club hall
 grid:
@@ -364,8 +397,9 @@ Each arrow object:
 | `score` | no | Score value as above |
 | `x`, `y` | no | Face point |
 | `at` | no | UTC release / entry time |
+| `target` | no | Target id when this arrow used a different face from the card |
 
-Empty arrow `{}` is allowed. A timed but unscored shot is `{ at: ... }` only.
+Empty arrow `{}` is allowed. A timed but unscored shot is `{ at: ... }` only. Omit `target` when the arrow used the card face.
 
 Card index, end index, and arrow index are **1-based** when used as keys (`1.1.2` = card 1, end 1, arrow 2).
 
@@ -385,6 +419,60 @@ Writers may omit cached totals. Readers and stats tools recompute:
 | `end` | `card.end` (example `1.1`) |
 | `round` | bulk round number as string or integer |
 | `file` | omit `key` |
+
+### Face
+
+| Key | Required | Meaning |
+| --- | --- | --- |
+| `target` | no | Target id. The face for every arrow on this card |
+| `face` | no | Diameter shot that day |
+
+## Target
+
+One face, one file. The scorecard names it with `target`. The diameter of that pass stays on the scorecard as `face`.
+
+```yaml
+oadf: 1
+type: target
+id: wa-full
+title: WA Full
+kind: wa-full
+```
+
+| Key | Required | Meaning |
+| --- | --- | --- |
+| `id` | yes | Stable id |
+| `title` | yes | Display name |
+| `kind` | no | Open token for a known face: `wa-full`, `wa-6-ring`, `vegas-3-spot`, … Unknown kinds are kept |
+| `zones` | no | Drawn regions. Present when the face is custom |
+| `spots` | no | Extra spot centres. Omit for one face centred on the origin |
+
+A reader that knows `kind` draws that face without `zones`. A custom face omits `kind` and lists `zones`. When both are present, `zones` are the picture in this package.
+
+Coordinates match face points: origin at centre, +x right, +y up, radius 10 at the outer edge of the full face.
+
+Zone order is hit priority. The first zone that contains a point wins. `score` on a zone is its label. The arrow keeps the score that was entered.
+
+| Key | Required | Meaning |
+| --- | --- | --- |
+| `score` | yes | Points label for that region |
+| `shape` | yes | `circle`, `polygon`, or `bezier` |
+| `fill` | no | Hex colour, such as `#F6EB0F` |
+| `r`, `cx`, `cy` | circle | Radius, and an optional centre. The default centre is the origin |
+| `points` | polygon | `[x, y]` vertices, at least 3 |
+| `nodes` | bezier | Closed chain. Each node is `x`, `y`, `inX`, `inY`, `outX`, `outY` |
+
+Without `spots`, zones sit on the full face. With `spots`, each spot is `{ x, y, r }` in full-face space, and zones are local to a spot, where radius 10 is that spot's edge. Arrow `x` and `y` stay in full-face space either way.
+
+```yaml
+oadf: 1
+type: target
+id: blank-spot
+title: Blank spot
+zones:
+  - { score: 5, fill: "#F6EB0F", shape: circle, r: 2 }
+  - { score: 0, fill: "#B7B7B7", shape: circle, r: 10 }
+```
 
 ## Bulk
 
@@ -440,7 +528,7 @@ Identity of a payload: `device` + `attach` + `key` (+ owning file). If duplicate
 - Numbers are finite decimals. Empty cells are missing values.
 - Writers do not put comments in CSV.
 
-**Aim (`kind: aim`).** Columns: `yaw,pitch` in degrees. +yaw right, +pitch up. Sample `i` is at `(i - breakIndex) / hz` seconds from release when `origin: release`. No time column.
+**Aim (**`kind: aim`**).** Columns: `yaw,pitch` in degrees. +yaw right, +pitch up. Sample `i` is at `(i - breakIndex) / hz` seconds from release when `origin: release`. No time column.
 
 ```csv
 yaw,pitch
@@ -581,6 +669,7 @@ Measured values use `{ value, unit }`. `marks` is `[{ distance, unit, mark }]`. 
 5. **New equipment type.** New `equipmentType` token + property keys.
 6. **New media kind.** New `media[].kind`; keep `attach` / `path`.
 7. **Tool private data.** Use `extensions.<toolId>` maps. Foreign tools round-trip them.
+8. **New target kind.** New `kind` on a target document. No schema version bump.
 
 Breaking changes bump `oadf` to a new major version. Additive open-token growth does not.
 
@@ -593,13 +682,14 @@ A reader:
 - Recomputes score totals from arrows.
 - Leaves missing scores missing (does not invent misses).
 - Loads series only from CSV sidecars named by descriptors.
-- Keeps unknown keys, unknown block types, unknown devices, unknown equipment types.
+- Keeps unknown keys, unknown block types, unknown devices, unknown equipment types, and unknown target kinds.
 - Accepts JSON documents with the same shape.
 
 A writer:
 
 - Emits UTC times as ISO-8601 `Z`.
 - Emits face coordinates with +y up, radius 10.
+- Names `target` on a scorecard when the face is known. Zone geometry uses the same coordinates.
 - Emits series and photos as sidecars, never inlined bytes or sample matrices in YAML.
 - Uses 1-based `card.end.arrow` keys.
 - Round-trips unknown fields it does not own.

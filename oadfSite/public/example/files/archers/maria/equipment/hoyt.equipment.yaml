@@ -1,0 +1,10 @@
+oadf: 1
+type: equipment
+id: hoyt
+equipmentType: brand
+title: Hoyt
+description: Bow manufacturer.
+revisions:
+  - rev: 1
+    at: 2026-01-01T00:00:00Z
+    props: {}

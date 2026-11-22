@@ -1,0 +1,10 @@
+oadf: 1
+type: session_template
+title: WA 18
+blocks:
+  - type: text
+    body: Twenty arrows on the blank bale, then one scored card.
+  - type: bulk
+    label: Blank bale
+  - type: scorecard
+    label: WA 18

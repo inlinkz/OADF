@@ -1,0 +1,37 @@
+oadf: 1
+type: equipment
+id: indoor-recurve
+equipmentType: bow
+title: Indoor recurve
+brand: hoyt
+owner: maria
+description: Hall bow.
+revisions:
+  - rev: 1
+    at: 2026-09-01T08:00:00Z
+    props:
+      bowType: recurve
+      size: { value: 68, unit: in }
+      drawWeight: { value: 34, unit: lb }
+      braceHeight: { value: 9.25, unit: in }
+      tiller: 0 / 0.125 in
+      limbs: old
+      string: "8190"
+      nockingPoint: 5 mm
+      parts: [shibuya-ultima, longrod-30, string-8190]
+  - rev: 2
+    at: 2026-11-02T18:00:00Z
+    props:
+      bowType: recurve
+      size: { value: 68, unit: in }
+      drawWeight: { value: 34, unit: lb }
+      braceHeight: { value: 9.25, unit: in }
+      tiller: 0 / 0.125 in
+      limbs: Wiawis NS
+      string: "8190"
+      nockingPoint: 5 mm
+      parts: [axcel-achieve, longrod-30, string-8190]
+media:
+  - kind: photo
+    attach: file
+    path: archers/maria/media/indoor-recurve.jpg
