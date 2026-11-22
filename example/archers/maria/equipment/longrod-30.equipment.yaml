@@ -1,0 +1,15 @@
+oadf: 1
+type: equipment
+id: longrod-30
+equipmentType: stabilizer
+title: Long rod 30
+brand: shibuya
+owner: maria
+description: Front rod.
+revisions:
+  - rev: 1
+    at: 2026-09-01T08:00:00Z
+    props:
+      role: front
+      length: { value: 30, unit: in }
+      weights: [end-weight-1oz]

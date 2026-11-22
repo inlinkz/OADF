@@ -1,0 +1,30 @@
+oadf: 1
+type: programme
+id: form-block
+title: Form block
+description: Two practices. Volume, then a scored card.
+units:
+  - index: 1
+    title: Volume
+    blocks:
+      - type: text
+        body: Blank bale only. Stop at 120 arrows.
+      - type: bulk
+        label: Blank bale
+        targetArrows: 120
+  - index: 2
+    title: Score
+    blocks:
+      - type: text
+        body: One WA 18 card. Record the sight if it is connected.
+      - type: scorecard
+        label: WA 18
+        devices: [mantis, heart-rate, wii-balance]
+        config:
+          endsPerCard: 2
+          arrowsPerEnd: 3
+          cards: 1
+          round: WA 18 (40cm)
+          distance: { value: 18, unit: m }
+          face: { value: 40, unit: cm }
+          indoor: true

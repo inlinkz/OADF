@@ -1,0 +1,22 @@
+oadf: 1
+type: bulk
+archer: maria
+location: Club hall
+indoor: true
+distance: { value: 5, unit: m }
+rounds:
+  - arrows: 20
+    at: 2026-10-20T16:02:14.742Z
+  - arrows: 10
+    at: 2026-10-20T16:03:25.589Z
+series:
+  - device: wii-balance
+    attach: round
+    key: 1
+    path: archers/maria/series/balance-round-1.csv
+    time: iso
+    channels:
+      - { name: tr, unit: kg }
+      - { name: br, unit: kg }
+      - { name: tl, unit: kg }
+      - { name: bl, unit: kg }

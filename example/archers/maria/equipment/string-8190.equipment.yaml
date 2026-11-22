@@ -1,0 +1,14 @@
+oadf: 1
+type: equipment
+id: string-8190
+equipmentType: string
+title: "8190"
+brand: bcy
+owner: maria
+description: On the hall bow.
+revisions:
+  - rev: 1
+    at: 2026-09-01T08:00:00Z
+    props:
+      mountedOn: indoor-recurve
+      strands: 18

@@ -1,0 +1,60 @@
+oadf: 1
+type: session
+date: 2026-10-20
+archer: maria
+programme: form-block
+unit: 2
+programmePath: programmes/form-block.programme.yaml
+location: Club hall
+indoor: true
+equipment:
+  - id: indoor-recurve
+    type: bow
+    title: Indoor recurve
+    rev: 1
+    at: 2026-09-01T08:00:00Z
+  - id: shibuya-ultima
+    type: sight
+    title: Shibuya Ultima
+    rev: 2
+    at: 2026-10-12T09:00:00Z
+  - id: ace-670
+    type: arrow
+    title: ACE 670
+    rev: 1
+    at: 2026-09-01T08:00:00Z
+  - id: longrod-30
+    type: stabilizer
+    title: Long rod 30
+    rev: 1
+    at: 2026-09-01T08:00:00Z
+  - id: end-weight-1oz
+    type: weight
+    title: End weight 1 oz
+    rev: 1
+    at: 2026-09-01T08:00:00Z
+  - id: string-8190
+    type: string
+    title: "8190"
+    rev: 1
+    at: 2026-09-01T08:00:00Z
+blocks:
+  - type: text
+    body: Twenty arrows on the blank bale, then one scored WA 18 card.
+  - type: bulk
+    label: Blank bale
+    path: archers/maria/bulk/2026-10-20-1802.bulk.yaml
+  - type: scorecard
+    label: WA 18
+    path: archers/maria/scorecards/2026-10-20-1820.scorecard.yaml
+series:
+  - device: heart-rate
+    attach: file
+    path: archers/maria/series/heart-2026-10-20.csv
+    time: iso
+    channels:
+      - { name: bpm, unit: bpm }
+media:
+  - kind: photo
+    attach: file
+    path: archers/maria/media/session-hall.jpg

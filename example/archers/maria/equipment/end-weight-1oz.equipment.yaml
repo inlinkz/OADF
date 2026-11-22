@@ -1,0 +1,13 @@
+oadf: 1
+type: equipment
+id: end-weight-1oz
+equipmentType: weight
+title: End weight 1 oz
+owner: maria
+description: On the long rod.
+revisions:
+  - rev: 1
+    at: 2026-09-01T08:00:00Z
+    props:
+      mass: { value: 1, unit: oz }
+      mount: end
